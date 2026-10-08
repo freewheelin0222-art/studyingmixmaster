@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>工学系技術者のミックスマスタリングノート</title>
+<style>
+:root{
+  --bg:#f6f4ef; --panel:#ffffff; --card:#fbfaf6;
+  --ink:#1d2228; --muted:#5a6676; --faint:#8a94a2;
+  --line:#e2ded5; --line-soft:#ece9e1;
+  --accent:#b5841a;       /* 金 — vocal/明瞭度 */
+  --accent-soft:#f6edd4;
+  --cool:#2a7fb0;         /* 水色 — beat/低域 */
+  --cool-soft:#e2f0f7;
+  --glow:#b5841a;
+  --heat:#c0493a;         /* 朱 — 歪み/警告 */
+  --good:#3a9468;         /* 緑 — OK */
+  --purple:#7a5cb8;       /* 紫 — 空間/リバーブ */
+  --radius:14px;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;
+  line-height:1.8;font-size:16px;letter-spacing:.01em}
+
+/* ===== top bar ===== */
+.topbar{position:sticky;top:0;z-index:40;background:rgba(246,244,239,.92);
+  backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
+  display:flex;align-items:center;gap:12px}
+.menu-btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  width:38px;height:38px;border-radius:10px;font-size:17px;cursor:pointer;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s}
+.menu-btn:hover{border-color:var(--accent)}
+.brand{font-size:15px;font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .wave{color:var(--accent)}
+
+/* ===== drawer ===== */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;left:0;height:100%;width:min(85vw,330px);z-index:60;
+  background:var(--panel);border-right:1px solid var(--line);
+  transform:translateX(-100%);transition:transform .24s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.drawer.open{transform:translateX(0)}
+.drawer-head{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.drawer-head .t{font-size:15px;font-weight:700}
+.drawer-head .s{font-size:12px;color:var(--faint);margin-top:3px}
+.drawer nav{overflow-y:auto;padding:8px 0 24px;flex:1}
+.drawer a{display:block;padding:11px 20px;color:var(--muted);text-decoration:none;font-size:14.5px;
+  border-left:3px solid transparent;transition:color .12s,background .12s,border-color .12s}
+.drawer a .n{color:var(--faint);font-variant-numeric:tabular-nums;margin-right:9px;font-size:13px}
+.drawer a:hover{background:var(--card);color:var(--ink)}
+.drawer a.active{color:var(--ink);border-left-color:var(--accent);background:var(--card)}
+.drawer a.active .n{color:var(--accent)}
+.drawer .sec-label{padding:14px 20px 5px;font-size:11px;color:var(--faint);letter-spacing:.08em}
+
+/* ===== page ===== */
+main{max-width:720px;margin:0 auto;padding:0 20px 80px}
+.page{display:none;animation:fade .3s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.page.active{animation:none}html{scroll-behavior:auto}}
+
+/* hero (home) */
+.hero{padding:40px 0 10px}
+.hero .ey{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:12px}
+.hero h1{font-size:clamp(25px,6.4vw,34px);line-height:1.3;margin:0 0 14px;font-weight:800;letter-spacing:.01em}
+.hero p{color:var(--muted);font-size:15px;margin:0}
+
+/* chapter head */
+.chead{padding:34px 0 6px;border-bottom:1px solid var(--line-soft);margin-bottom:8px}
+.chead .ci{font-size:13px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.chead h2{font-size:clamp(21px,5vw,27px);line-height:1.35;margin:8px 0 10px;font-weight:800}
+.chead .lead{color:var(--muted);font-size:14.5px;margin:0 0 4px}
+
+h3{font-size:18px;margin:30px 0 10px;font-weight:700;color:var(--ink)}
+h4{font-size:15.5px;margin:22px 0 7px;font-weight:700;color:var(--accent)}
+p{margin:12px 0}
+strong,b{color:#000;font-weight:700}
+a.inl{color:var(--cool);text-decoration:none;border-bottom:1px solid var(--cool-soft)}
+
+/* principle box — 音響工学の原理 */
+.principle{background:linear-gradient(180deg,var(--panel),var(--card));
+  border:1px solid var(--line);border-left:3px solid var(--cool);border-radius:var(--radius);
+  padding:16px 18px;margin:20px 0}
+.principle .h{font-size:12px;color:var(--cool);font-weight:700;letter-spacing:.06em;margin-bottom:7px}
+.principle p{margin:6px 0;font-size:14.5px;color:var(--ink)}
+.principle .eq{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:13.5px;color:var(--accent);
+  background:#f1ede3;border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:10px 0;
+  display:block;overflow-x:auto;white-space:nowrap}
+
+/* practice (この会話での実践) */
+.practice{background:var(--accent-soft);border:1px solid #e6d7a8;border-radius:var(--radius);
+  padding:15px 18px;margin:20px 0}
+.practice .h{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.05em;margin-bottom:6px}
+.practice p{font-size:14.5px;margin:6px 0}
+
+/* warn box */
+.warn{background:#fbeeeb;border:1px solid #f0d3cd;border-left:3px solid var(--heat);
+  border-radius:var(--radius);padding:14px 18px;margin:20px 0}
+.warn .h{font-size:12px;color:var(--heat);font-weight:700;margin-bottom:6px}
+.warn p{font-size:14.5px;margin:6px 0}
+
+/* steps / ordered */
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0}
+ol.steps li{position:relative;padding:10px 0 10px 42px;border-bottom:1px solid var(--line-soft)}
+ol.steps li:last-child{border-bottom:none}
+ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:10px;
+  width:28px;height:28px;border-radius:8px;background:var(--panel);border:1px solid var(--line);
+  color:var(--accent);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;
+  font-variant-numeric:tabular-nums}
+ol.steps li b{color:#fff}
+
+ul.plain{padding-left:20px;margin:12px 0}
+ul.plain li{margin:7px 0;color:var(--ink);font-size:14.5px}
+
+/* spectrum band table */
+.bands{margin:18px 0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.bands .row{display:grid;grid-template-columns:96px 1fr;gap:0;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+.bands .row:last-child{border-bottom:none}
+.bands .hz{padding:10px 12px;font-family:"SF Mono",ui-monospace,monospace;font-size:12.5px;
+  color:var(--ink);background:#f1ede3;border-right:1px solid var(--line);display:flex;align-items:center}
+.bands .ds{padding:10px 13px;color:var(--muted);display:flex;align-items:center}
+.bands .ds .tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;margin-right:8px;flex:0 0 auto}
+.tag.voc{background:var(--accent-soft);color:var(--accent)}
+.tag.bt{background:var(--cool-soft);color:var(--cool)}
+.tag.cut{background:#fbeeeb;color:var(--heat)}
+
+/* term tap */
+.term{border-bottom:1px dotted var(--accent);cursor:pointer;color:var(--ink)}
+.popover{position:fixed;left:12px;right:12px;bottom:12px;z-index:70;background:var(--panel);
+  border:1px solid var(--accent);border-radius:12px;padding:14px 16px;box-shadow:0 8px 30px rgba(0,0,0,.18);
+  transform:translateY(130%);transition:transform .22s cubic-bezier(.4,0,.2,1);max-width:700px;margin:0 auto}
+.popover.show{transform:translateY(0)}
+.popover .pt{font-weight:700;color:var(--accent);font-size:15px;margin-bottom:4px}
+.popover .pd{font-size:13.5px;color:var(--muted);line-height:1.7}
+.popover .px{position:absolute;top:8px;right:11px;color:var(--faint);cursor:pointer;font-size:18px;line-height:1}
+
+/* prev / next */
+.pager{display:flex;justify-content:space-between;gap:10px;margin:40px 0 0;padding-top:20px;border-top:1px solid var(--line)}
+.pager button{flex:1;appearance:none;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  border-radius:10px;padding:13px 14px;cursor:pointer;font-size:13.5px;text-align:left;transition:border-color .15s}
+.pager button:hover:not(:disabled){border-color:var(--accent)}
+.pager button:disabled{opacity:.3;cursor:default}
+.pager button .d{font-size:11px;color:var(--faint);margin-bottom:2px}
+.pager button.nx{text-align:right}
+
+/* home cards */
+.tocard{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:15px 17px;margin:11px 0;transition:border-color .15s,transform .1s}
+.tocard:hover{border-color:var(--accent);transform:translateX(2px)}
+.tocard .cn{font-size:12px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.tocard .ct{font-size:16px;font-weight:700;margin:4px 0 4px}
+.tocard .cs{font-size:13px;color:var(--muted);margin:0}
+
+footer{max-width:720px;margin:0 auto;padding:30px 20px 60px;color:var(--faint);font-size:12px;border-top:1px solid var(--line-soft)}
+.note{font-size:12.5px;color:var(--faint);margin:14px 0}
+hr.soft{border:none;border-top:1px solid var(--line-soft);margin:26px 0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="目次を開く">☰</button>
+  <div class="brand">工学系技術者の<span class="wave">ミックス</span>ノート</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="目次">
+  <div class="drawer-head">
+    <div class="t">工学系技術者のミックスマスタリングノート</div>
+    <div class="s">type beat に歌を乗せる — 原理から仕上げまで</div>
+  </div>
+  <nav id="nav"></nav>
+</aside>
+
+<main id="main"></main>
+
+<div class="popover" id="pop" role="dialog" aria-live="polite">
+  <span class="px" id="popx" aria-label="閉じる">×</span>
+  <div class="pt" id="popt"></div>
+  <div class="pd" id="popd"></div>
+</div>
+
+<footer>
+  工学系技術者のミックスマスタリングノート — type beat にボーカルを乗せる制作の記録。<br>
+  数値や手順は一般的な目安で、曲・環境・プラグインのバージョンにより最適値は変わります。最後は必ず自分の耳と複数環境で確認してください。
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ---------- 用語集 ---------- */
+const TERMS={
+ 'LUFS':'Loudness Units relative to Full Scale。人間が感じる音の大きさ（ラウドネス）の単位。瞬間値ではなく一定時間の平均で測る。配信は概ね -14 LUFS を基準に、再生時に音量を自動で揃える。',
+ 'True Peak':'波形の見かけのピークではなく、デジタル→アナログ変換で復元される本当の最大値。0dBTPを超えると変換時に歪む。配信マスターは -1dBTP に抑えるのが安全。',
+ 'マスキング':'ある音が、近い周波数の別の音を聴こえにくくする聴覚の現象。大きい音ほど、また低い音ほど、上の帯域を広くマスクする。ミックスの「埋もれ」の正体。',
+ 'サイドチェイン':'あるトラックの処理（コンプやEQ）を、別のトラックの音量で動かす仕組み。「ボーカルが鳴った瞬間だけビートを削る」はこれで実現する。',
+ 'ダイナミックEQ':'設定した帯域を、音量に応じて動的に削る/上げるEQ。静的EQと違い「ぶつかった瞬間だけ」効かせられるので、素材を痩せさせずに棲み分けできる。',
+ 'プリディレイ':'原音が鳴ってから残響（リバーブ）が始まるまでの時間差。20〜40ms入れると、言葉の出だしが残響に埋もれず、原音と残響が分離して聴こえる。',
+ 'ヘッドルーム':'信号の現在のレベルと、歪み始める天井（0dB）との余裕。ミックス段でこれを残しておくと、マスタリングで無理なく整えられる。',
+ 'ダイナミクス':'音の大きい/小さいの幅。これがあるから抑揚やサビの盛り上がりが生まれる。潰しすぎるとダイナミクスが失われ「ずっとうるさいだけ」の音になる。',
+ 'ビット深度':'音のレベルを何段階で記録するかの解像度。16bitで約6.5万段階、24bitで約1600万段階。配信納品は24bitが標準。',
+ '浮動小数点':'数を「仮数×指数」で持つ記録方式（32bit float）。天井が実質なく0dBを超えても歪まないので編集・保存向き。完成マスターには不要で、納品は24bit整数にする。',
+ 'ステム':'ビートを構成する楽器を別々に書き出したファイル群（ドラム・ベース・メロディなど）。パンや帯域を個別に調整でき、2mixより格段に自由度が高い。',
+ 'Content ID':'アップされた音源を指紋照合で自動検出する仕組み。非独占ビートには登録済みのことが多く、無断で配信登録すると他の購入者と衝突してテイクダウンの原因になる。',
+ 'アグリゲーター':'DistroKidやTuneCoreなど、曲を各配信サービスに配信代行する業者。Spotify配信にはほぼ必須だが、非独占ビートの契約では登録を禁じていることがある。',
+ 'サチュレーション':'軽く歪ませて倍音を加える処理。基音の弱い囁き声などに芯と存在感を与え、音量を上げずに前に出せる。',
+ '相関(Correlation)':'左右チャンネルの位相の揃い具合。+1はモノラルにしても安全、マイナスはモノラル再生で音が打ち消されて消える危険を示す。'
+};
+function termify(html){
+  return html.replace(/\{\{(.+?)\}\}/g,(m,k)=>{
+    const key=k.includes('|')?k.split('|')[1]:k, label=k.split('|')[0];
+    return `<span class="term" data-k="${key}">${label}</span>`;
+  });
+}
+
+/* ---------- コンテンツ ---------- */
+const PAGES=[
+{id:'home',menu:'ホーム',num:'',build:()=>`
+ <section class="hero">
+   <div class="ey">type beat にボーカルを乗せる</div>
+   <h1>工学系技術者の<br>ミックスマスタリングノート</h1>
+   <p>既製の type beat に歌を重ねると、たいてい最初はボーカルが埋もれ、音が飽和し、配信でつまずく。その一つひとつを、音響工学の原理（周波数・時間・振幅・空間）に照らして、診断 → 原因特定 → 対処の順にたどった記録です。</p>
+ </section>
+ <div style="margin-top:26px">
+   ${PAGES.filter(p=>p.num).map(p=>`
+     <a class="tocard" href="#${p.id}" data-go="${p.id}">
+       <div class="cn">${p.num}</div>
+       <div class="ct">${p.menu}</div>
+       <div class="cs">${p.sub||''}</div>
+     </a>`).join('')}
+ </div>
+`},
+
+/* ===== 第1章 ===== */
+{id:'ch1',menu:'ボーカルが埋もれる',num:'第1章',sub:'周波数と振幅の棲み分け',build:()=>termify(`
+ <div class="chead"><div class="ci">第1章</div>
+   <h2>ボーカルが埋もれる</h2>
+   <p class="lead">歌とビートが同じ場所で鳴ると、片方が聴こえなくなる。まず原因を切り分ける。</p></div>
+
+ <p>type beat に歌を乗せて最初にぶつかるのが「ボーカルが聴き取れない」。原因は一つではなく、<b>ゲイン（音量）・周波数・空間・音圧</b>のどこかにある。やみくもに音量を上げる前に、どれが効いているかを切り分けるのが近道です。</p>
+
+ <div class="principle"><div class="h">音響工学の原理：マスキング</div>
+   <p>二つの音が近い周波数で同時に鳴ると、大きい方が小さい方を聴こえなくする。これを{{マスキング}}という。人間の聴覚は、ある帯域に強い音があると、その近く（特に上側）の弱い音を知覚しにくくなる。「埋もれ」はボーカルとビートが<b>同じ周波数帯で競合</b>して起きる、聴覚の必然です。</p>
+   <p>だから解決策は音量ではなく、<b>周波数の住み分け</b>。欲しい音の帯域を、邪魔する音から空ける。</p>
+ </div>
+
+ <h3>切り分けの順番</h3>
+ <ol class="steps">
+   <li><b>ゲイン整理</b>：まずビートを少し下げて、ボーカルの余白を作る。全体の音圧を上げるのは最後のマスタリングで。</li>
+   <li><b>周波数の棲み分け</b>：ボーカルの明瞭度帯（2〜5kHz）を確保し、ビート側で同じ帯域を削る。</li>
+   <li><b>空間</b>：リバーブ/ディレイのかけ過ぎで輪郭がぼやけていないか（第2章）。</li>
+   <li><b>音圧</b>：マスターで潰しすぎて、瞬間的に大きいビートにボーカルが負けていないか（第4章）。</li>
+ </ol>
+
+ <h3>EQで住所を割り当てる</h3>
+ <p>ボーカルの「言葉」の明瞭さは <b>2〜5kHz</b> にある。ここをボーカル側で少し持ち上げ、同じ帯域をビート側で削る。<b>両方上げると衝突する</b>ので、必ず片方を下げるのが鉄則です。</p>
+
+ <div class="principle"><div class="h">音響工学の原理：引き算が先</div>
+   <p>欲しい帯域を上げる（ブースト）より、邪魔な帯域を削る（カット）方が、全体のエネルギーを増やさずに済み、飽和しにくい。初心者ほど足し算に走り、プロほど引き算で場所を作る。「上げたいなら、まず相手を下げる」。</p>
+ </div>
+
+ <h3>サイドチェイン：鳴った瞬間だけどかす</h3>
+ <p>低域側（ボーカルの芯とビートの土台が重なる 100〜250Hz など）は、静的に削るとビートが痩せる。そこで{{サイドチェイン}}と{{ダイナミックEQ}}を使い、<b>ボーカルが鳴った瞬間だけ</b>ビートのその帯域を凹ませる。言葉の隙間ではビートが戻るので、土台を保ったまま歌を通せる。</p>
+ <div class="practice"><div class="h">このノートでやったこと（Pro-Q 4）</div>
+   <p>ビート側の Pro-Q 4 でボーカルとぶつかる帯域にバンドを立て、ダイナミックモードにして外部サイドチェイン（ボーカル）をトリガーに設定。Range を −6〜−8dB、Threshold はボーカルの小さい音でも反応するまで下げる。静的 −4dB で足りなくても、ダイナミックなら痩せずに深く掘れる。</p>
+ </div>
+
+ <h3>囁き・低い声という難所</h3>
+ <p>声帯をあまり使わない囁き声は、音の芯（基音のエネルギー）が弱く、息の成分が多い。低い声だと基音も沈むので「芯が弱い＋低い」の二重苦で、ただ音量を上げてもうるさくなるだけで言葉は明瞭にならない。</p>
+ <ul class="plain">
+   <li><b>強めのコンプで粒を揃える</b>：音量の谷で言葉が消えるのを防ぐ。Gain Reduction が常時 −4〜8dB 出るくらい。囁きは潰し気味が安定する。</li>
+   <li><b>{{サチュレーション}}で芯を作る</b>：弱い基音に倍音を足すと、小音量でも前に出る。囁き声を聴かせる隠れた必殺技。</li>
+   <li><b>明瞭度帯（2〜5kHz）と息感（5〜8kHz）を少し上げる</b>：低域で勝負せず、中高域で言葉を立たせる。</li>
+ </ul>
+ <p class="note">日英ミックス歌詞では、英語パートの方が子音が立って明瞭度帯を食いやすい。パートごとにEQを微調整する余地があります。</p>
+`)},
+
+/* ===== 第2章 ===== */
+{id:'ch2',menu:'リバーブの設計',num:'第2章',sub:'時間軸と空間のコントロール',build:()=>termify(`
+ <div class="chead"><div class="ci">第2章</div>
+   <h2>リバーブの設計</h2>
+   <p class="lead">空間を足しつつ、言葉をぼやけさせない。鍵は「時間差」にある。</p></div>
+
+ <p>リバーブは奥行きと艶を与えるが、かけ方を誤るとボーカルの輪郭を溶かし、ビートに埋もれて聴こえなくなる。</p>
+
+ <div class="principle"><div class="h">音響工学の原理：リバーブは時間の重なり</div>
+   <p>リバーブは、原音が壁や空間で反射して少しずつ遅れて返ってくる反射音の集まり。原音のすぐ後ろに大量の反射音が重なると、言葉（特に子音のアタック）がぼやける。つまりリバーブ問題の多くは<b>周波数ではなく時間軸</b>の問題。原音と残響を時間で引き離せば、明瞭さと空間は両立する。</p>
+ </div>
+
+ <h3>send / return で使う</h3>
+ <p>ボーカルに直接インサートせず、リバーブ用のAuxを立てて send で送る。原音（ドライ）と残響（ウェット）を独立して調整でき、ボーカルの芯を保ったまま空間だけ足せる。</p>
+ <ul class="plain">
+   <li>send/return で使うなら、リバーブ本体は <b>Wet 100%</b>。原音は別ルートで鳴っているので、return には残響だけあればいい。</li>
+   <li>残響が聴こえないときは、<b>return フェーダーが低い</b>か <b>Wet が足りない</b>ことが多い。「ビートに埋もれて消えた」と思ったら、まずここを疑う。</li>
+ </ul>
+
+ <h3>プリディレイで原音と残響を分離</h3>
+ <p>{{プリディレイ}}を 20〜40ms 入れると、原音が鳴りきってから残響が来る。この一瞬の隙間で、言葉のアタックがクリアに立ち、その後に余韻が続く。<b>短いリバーブが原音と被る</b>ときも、プリディレイを伸ばすのが最も効く対処。</p>
+
+ <h3>リバーブ用EQ</h3>
+ <ul class="plain">
+   <li><b>低域カット</b>：200〜300Hz以下を切る。低域の残響はこもり（モコモコ）の主因。</li>
+   <li><b>高域を軽く抑える</b>：8〜10kHz以上を少し削ると、残響が刺さらず自然に馴染む。</li>
+   <li><b>明瞭度帯（2〜5kHz）を残響側で削る</b>：原音の輪郭と残響がぶつからなくなる。</li>
+ </ul>
+
+ <h3>短い／長いの2層構成</h3>
+ <p>役割を分けて2つ使うと、埋もれず広がりも出せる。</p>
+ <ul class="plain">
+   <li><b>短いリバーブ（Room/Plate）</b>：全体に薄く常時。近い空間・密度を足し、輪郭を保つ。</li>
+   <li><b>長いリバーブ（Hall）</b>：サビや語尾など要所だけに送る。広がり・余韻を演出。低域はしっかり切り、プリディレイ長めかダッキングで言葉と分離。</li>
+ </ul>
+ <div class="practice"><div class="h">このノートでやったこと（Neoverb）</div>
+   <p>Reverb Assistant で土台を作り、ブレンドを Plate 寄りに。入力EQで低域カット、出力EQで明瞭度帯とハイを整理、Pre-Delay 20〜40ms。内蔵のダッキングで、ボーカルが鳴る間はリバーブを軽く抑え、言葉の隙間で開かせた。</p>
+ </div>
+`)},
+
+/* ===== 第3章 ===== */
+{id:'ch3',menu:'飽和をほどく',num:'第3章',sub:'エネルギーの集中を散らす',build:()=>termify(`
+ <div class="chead"><div class="ci">第3章</div>
+   <h2>音の飽和・渋滞をほどく</h2>
+   <p class="lead">「なんかうるさい」を、「ここがぶつかっている」に変える。</p></div>
+
+ <p>要素が多いビート（ラテン/Afro系のパーカッション、重ねたボーカル）では、音が飽和して「うるさいのに、何も明瞭でない」状態になりやすい。</p>
+
+ <div class="principle"><div class="h">音響工学の原理：飽和は帯域あたりのエネルギー過多</div>
+   <p>人間が「うるさい」「飽和している」と感じるのは、多くの場合<b>特定の周波数帯にエネルギーが集中しすぎている</b>とき。複数の音が同じ帯域で重なると、そこが飽和して全体が濁り、個々の音も不明瞭になる。プロの音が「それぞれ収まって」聴こえるのは、各音に<b>周波数・時間・空間（パン）の居場所</b>を割り当てているから。</p>
+ </div>
+
+ <h3>飽和の3タイプを見分ける</h3>
+ <ul class="plain">
+   <li><b>帯域の渋滞</b>：中高域（2〜6kHz）に音が密集。→ 棲み分け・引き算。</li>
+   <li><b>ステレオの飽和</b>：全部センターに寄って真ん中が渋滞。→ パンで左右に散らす。</li>
+   <li><b>音圧の飽和</b>：全体レベルが高すぎ。→ マスターの潰しを見直す（第4章）。</li>
+ </ul>
+
+ <h3>マスキングを可視化する</h3>
+ <p>「なんとなくうるさい」を直すには、まず<b>どこがぶつかっているか</b>を見る。Neutron の Masking Meter は、2トラック（ボーカルとビート）を照合し、競合している帯域を色で示す。見えれば、やるべきことが具体的になる。</p>
+ <div class="practice"><div class="h">このノートでやったこと（Neutron / Pro-Q 4）</div>
+   <p>Masking Meter でビートのエネルギーが 300Hz〜2kHz、特に 500Hz〜1kHz で突出してボーカルを上回っているのを確認。ビート側の Pro-Q 4 で 200Hz（−10dB付近）・500Hz〜1kHz・2kHz を狙って削ると、中域の団子が取れて飽和が減り、同時にボーカルの居場所が空いた。削りすぎてビートが痩せないかは耳で確認。</p>
+ </div>
+
+ <h3>帯域の割り当て表（囁きボーカル主役の目安）</h3>
+ <div class="bands">
+   <div class="row"><div class="hz">〜60Hz</div><div class="ds"><span class="tag cut">カット</span>不要な超低域。全トラックでローカット</div></div>
+   <div class="row"><div class="hz">60–120Hz</div><div class="ds"><span class="tag bt">ビート</span>キック・ベースの土台。ボーカルは入らない</div></div>
+   <div class="row"><div class="hz">120–300Hz</div><div class="ds"><span class="tag voc">ボーカル</span>声の芯。ビート側を削って通す（激戦区）</div></div>
+   <div class="row"><div class="hz">300–800Hz</div><div class="ds"><span class="tag cut">整理</span>こもり帯域。両方で整理、盛らない</div></div>
+   <div class="row"><div class="hz">2–5kHz</div><div class="ds"><span class="tag voc">ボーカル</span>言葉の明瞭度。最優先、ビート側は削る</div></div>
+   <div class="row"><div class="hz">5–10kHz</div><div class="ds"><span class="tag voc">ボーカル</span>息感・存在感。ハイハット等とは棲み分け</div></div>
+   <div class="row"><div class="hz">10kHz〜</div><div class="ds"><span class="tag bt">空気感</span>全体の艶。上げすぎ注意</div></div>
+ </div>
+
+ <h3>ボーカルスタックの階層化</h3>
+ <p>main / double / hook を全部同じ音量・同じ明瞭度で鳴らすと飽和する。main を前に明瞭に、double は音量を下げ高域を削って厚みだけに、hook は後ろに。<b>ダブルは「言葉が分かる」必要はなく、厚みだけでいい</b>。</p>
+
+ <div class="warn"><div class="h">type beat（2mix）の限界</div>
+   <p>完成済みの2mixビートは、中で複数の楽器が混ざった状態で、しかも音圧マックスでマスタリングされていることが多い。個別楽器に分解できないので、できるのは特定帯域を抑えることと、ビートの音量を「主役」から「背景」に引き戻すこと。根本解決は {{ステム}}（trackout版）の入手（第5章）。</p>
+ </div>
+`)},
+
+/* ===== 第4章 ===== */
+{id:'ch4',menu:'ラウドネスとマスタリング',num:'第4章',sub:'振幅と音圧の管理',build:()=>termify(`
+ <div class="chead"><div class="ci">第4章</div>
+   <h2>ラウドネスとマスタリング</h2>
+   <p class="lead">大きくするほど良いわけではない。潰しすぎは、いちばんボーカルを殺す。</p></div>
+
+ <div class="principle"><div class="h">音響工学の原理：ラウドネスとダイナミクス</div>
+   <p>音の良し悪しの判断は、音量に大きく引きずられる。人間は<b>大きい音を「良い音」と誤認</b>する。だから比較やマスタリングでは、見かけの音量ではなく{{LUFS}}で客観的に揃えて判断する。</p>
+   <p>そして音楽は、大きい/小さいの波＝{{ダイナミクス}}があるから抑揚が生まれる。マキシマイザーで潰しすぎると波が消え、「ずっと最大」で抑揚のない音になる。R&B/chill のような静と動で聴かせるジャンルほど、これは致命的。</p>
+ </div>
+
+ <h3>配信基準と「潰しすぎの罠」</h3>
+ <p>Spotify / Apple Music / TikTok は再生時にラウドネスを自動調整する。基準は概ね <b>−14 LUFS</b>。それより大きく書き出しても、再生側で下げられるだけ。</p>
+ <div class="warn"><div class="h">−5 LUFS は完全に損</div>
+   <p>−14 に対して −5 は 9dB もオーバー。再生側で −14 まで下げられるので<b>音量メリットはゼロ</b>、残るのは潰れたダイナミクスと歪みリスクだけ。瞬間的に大きいキックやパーカッションが優先され、繊細なボーカルやリバーブが真っ先に潰れる。これまでの丁寧なミックスが、最後の一手で平らにされる。</p>
+ </div>
+ <ol class="steps">
+   <li><b>Integrated LUFS を測る</b>：Loudness Meter を Start → 曲を通しで再生 → 数値を確認。</li>
+   <li><b>目標を −14〜−11 に</b>：Ozone なら Maximizer の Gain を下げ、Soft Clip / Upward Compress も控えめから。R&B/chill は −12 前後が心地よいことが多い。</li>
+   <li><b>{{True Peak}} を −1dB に</b>：配信のコーデック変換で歪まないための天井。</li>
+ </ol>
+
+ <div class="principle"><div class="h">音響工学の原理：ヘッドルーム</div>
+   <p>ミックス段で{{ヘッドルーム}}（天井までの余裕）を残しておくと、マスタリングで無理なく整えられる。各トラックを欲張って上げると、合算でマスターが飽和し、潰すしかなくなる。整ったミックスは、潰さなくても十分に聴こえる。</p>
+ </div>
+`)},
+
+/* ===== 第5章 ===== */
+{id:'ch5',menu:'ビート購入とライセンス',num:'第5章',sub:'音質の天井と配信の権利',build:()=>termify(`
+ <div class="chead"><div class="ci">第5章</div>
+   <h2>ビート購入とライセンス</h2>
+   <p class="lead">音質の天井と、配信できるかどうかは、買う前に決まっている。</p></div>
+
+ <h3>128k 試聴版と WAV の違い</h3>
+ <p>リース/試聴用の 128kbps MP3 は、高域が削られ圧縮ノイズが乗る。どれだけ丁寧に処理しても、<b>最終音質の上限がここで決まる</b>。本気で出すなら untagged の WAV を入手するのが、どんな処理より音質に効く。</p>
+ <div class="warn"><div class="h">128k を処理するときの注意</div>
+   <p>高域が既に劣化しているので、EQやエキサイターで高域を上げすぎると、<b>削れた帯域のノイズだけが持ち上がる</b>。マスターも攻めすぎると圧縮ノイズが目立つ。10kHz以上の過度なブーストは避け、マスターは控えめに。</p>
+ </div>
+
+ <h3>ライセンスの階層</h3>
+ <ul class="plain">
+   <li><b>Basic / Premium</b>：MP3〜WAV。販売・ストリーム数に上限。</li>
+   <li><b>Unlimited</b>：WAV + {{ステム}}付きのことが多く、上限なし。ステムはミックスの自由度（パン・帯域の個別調整）を買うことでもある。</li>
+   <li><b>Exclusive</b>：そのビートを独占。高額だが、配信や権利が安定する。</li>
+ </ul>
+
+ <h3>配信の落とし穴</h3>
+ <div class="warn"><div class="h">非独占ビートは配信を禁じていることがある</div>
+   <p>多くの非独占ライセンスには「{{アグリゲーター}}（TuneCore/CDBaby/DistroKid等）への登録禁止」条項がある。ビートには{{Content ID}}が登録済みで、無断で配信すると<b>他の購入者と衝突して自動でテイクダウン</b>され、最悪アカウントごと凍結される。ページに「無制限ストリーム」とあっても、契約書のこの条項が優先する。</p>
+ </div>
+ <p>「バレない」は成立しにくい。Content ID は人ではなく<b>機械が自動照合</b>するからです。ヒットするほど、他の正規購入者やプロデューサーとの衝突が起きやすくなる。</p>
+
+ <div class="practice"><div class="h">買う前にプロデューサーに確認すべきこと</div>
+   <p>1) そのライセンスで DistroKid 等を通して Spotify に配信していいか。2) 配信OKなら、自分の曲を Content ID から除外（ホワイトリスト）してくれるか。3) ダメなら Exclusive の価格はいくらか。この確認が取れないビートに、配信前提の勝負曲を乗せない。</p>
+ </div>
+ <p class="note">配信しない（SNSプロモーション止まり）なら、非独占の下位ライセンスでも用途の範囲で使える。用途を割り切るのも一つの判断です。</p>
+`)},
+
+/* ===== 第6章 ===== */
+{id:'ch6',menu:'リリース前チェック',num:'第6章',sub:'書き出しと複数環境での検証',build:()=>termify(`
+ <div class="chead"><div class="ci">第6章</div>
+   <h2>リリース前チェック</h2>
+   <p class="lead">制作環境だけで判断しない。ここが最後の、そして最大の関門。</p></div>
+
+ <h3>バウンス設定（配信用）</h3>
+ <ul class="plain">
+   <li>フォーマット：<b>WAV</b></li>
+   <li>{{ビット深度}}：<b>24bit</b>（制作用の{{浮動小数点}} 32bit float ではなく、納品は24bit整数）</li>
+   <li>サンプルレート：プロジェクトと同じ（44.1kHzなら44.1kHz）</li>
+   <li>ノーマライズ：<b>オフ</b>（Ozoneで作ったラウドネスを上書きさせない）</li>
+   <li>ディザ：24bitなら不要／True Peak −1dB を確認</li>
+ </ul>
+
+ <div class="principle"><div class="h">音響工学の原理：なぜ24bitで十分か</div>
+   <p>32bit float の利点は「0dBを超えても歪まない」余裕だが、完成マスターは既に −1dB に収まっていてその余裕は使わない。24bitでも約1600万段階あり、人間の聴覚の識別限界を超える。標準に合わせることで、アグリゲーターでのトラブルを防げる。</p>
+ </div>
+
+ <h3>Logic標準メーターでの確認</h3>
+ <ul class="plain">
+   <li><b>Loudness Meter</b>：Integrated を −14〜−11 に（潰しすぎ防止）。</li>
+   <li><b>{{相関(Correlation)|相関}}メーター</b>：針が +側 ならモノラルでも安全。マイナスに振れると、スマホのモノラルスピーカーでボーカルやリバーブが消える。</li>
+   <li><b>Multimeter（Goniometer）</b>：縦長にまとまっていればモノラル互換が良い。横に広がりすぎ・斜めは位相の偏り。</li>
+ </ul>
+ <div class="practice"><div class="h">このノートでの確認結果</div>
+   <p>Integrated −12.6 LUFS、LU Range 4.1（適度な抑揚）、相関 +0.8（モノラル安全）、Goniometer 縦長。前回の事故（ボーカルが小さい）のパターン＝潰しすぎ・位相破綻のどちらにも当てはまらず、数値の裏付けを持ってリリースへ進めた。</p>
+ </div>
+
+ <div class="principle"><div class="h">音響工学の原理：なぜモノラルで消えるのか</div>
+   <p>左右で位相が逆の成分は、モノラル（L+R）に合算すると打ち消し合って消える。ステレオで広げすぎたボーカルやリバーブは、スマホやBluetoothスピーカーのモノラル再生で小さくなる。ボーカルはセンター（相関高め）に置くのが安全。</p>
+ </div>
+
+ <h3>複数環境での試聴リスト</h3>
+ <p>制作環境だけで「OK」と判断するのが、ボーカルが小さくなる事故の最大の原因。最低限この順で確認する。</p>
+ <ol class="steps">
+   <li><b>スマホ内蔵スピーカー（モノラル）</b>：TikTok/配信の実環境。ここで言葉が聴き取れるかが合否ライン。最優先。</li>
+   <li><b>スマホ＋安いイヤホン</b>：リスナーの大多数の環境。埋もれが露呈しやすい。</li>
+   <li><b>車内</b>：低域が強調され、走行ノイズもある。ノイズ下でも言葉が聴けるか。</li>
+   <li><b>会議用/小型スピーカー</b>：中域中心の再生で、別角度の確認になる。</li>
+ </ol>
+
+ <div class="practice"><div class="h">最終チェックのコツ</div>
+   <p>各環境で、同ジャンルのプロの曲を同じラウドネスに揃えて直後に流し、ボーカルの前後感を比較する。プロの曲で前に出ているのに自分のが沈んでいたら、その環境で調整が要るサイン。何も知らない人にスマホで聴かせ「歌詞聴き取れた？」と聞くのが、いちばん正確なテスト。</p>
+ </div>
+`)}
+];
+
+/* ---------- レンダリング ---------- */
+function renderNav(){
+  let h='<a href="#home" data-go="home" id="nav-home"><span class="n">—</span>ホーム</a>';
+  h+='<div class="sec-label">章</div>';
+  PAGES.filter(p=>p.num).forEach(p=>{
+    h+=`<a href="#${p.id}" data-go="${p.id}" id="nav-${p.id}"><span class="n">${p.num.replace('第','').replace('章','')}</span>${p.menu}</a>`;
+  });
+  $('nav').innerHTML=h;
+}
+function renderPages(){
+  $('main').innerHTML=PAGES.map(p=>`<div class="page" id="pg-${p.id}">${p.build()}</div>`).join('');
+}
+function go(id,push){
+  const i=PAGES.findIndex(p=>p.id===id); if(i<0)return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('pg-'+id).classList.add('active');
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.go===id));
+  // pager
+  addPager(id,i);
+  closeDrawer();
+  window.scrollTo({top:0,behavior:'auto'});
+  if(push)history.replaceState(null,'','#'+id);
+}
+function addPager(id,i){
+  const pg=$('pg-'+id);
+  if(pg.querySelector('.pager'))return;
+  const prev=PAGES[i-1],next=PAGES[i+1];
+  const el=document.createElement('div');el.className='pager';
+  el.innerHTML=`
+   <button ${prev?'':'disabled'} data-go="${prev?prev.id:''}">
+     <div class="d">← 前へ</div>${prev?(prev.num||'ホーム')+'　'+prev.menu:'—'}</button>
+   <button class="nx" ${next?'':'disabled'} data-go="${next?next.id:''}">
+     <div class="d">次へ →</div>${next?next.num+'　'+next.menu:'—'}</button>`;
+  pg.appendChild(el);
+}
+
+/* drawer */
+function openDrawer(){$('drawer').classList.add('open');$('scrim').classList.add('open')}
+function closeDrawer(){$('drawer').classList.remove('open');$('scrim').classList.remove('open')}
+$('menuBtn').addEventListener('click',openDrawer);
+$('scrim').addEventListener('click',closeDrawer);
+
+/* delegated nav */
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-go]');
+  if(a&&a.dataset.go){e.preventDefault();go(a.dataset.go,true);return;}
+  const t=e.target.closest('.term');
+  if(t){showPop(t.dataset.k);return;}
+});
+
+/* term popover */
+function showPop(k){
+  if(!TERMS[k])return;
+  $('popt').textContent=k;$('popd').textContent=TERMS[k];
+  $('pop').classList.add('show');
+}
+$('popx').addEventListener('click',()=>$('pop').classList.remove('show'));
+document.addEventListener('click',e=>{
+  if($('pop').classList.contains('show') && !e.target.closest('#pop') && !e.target.closest('.term'))
+    $('pop').classList.remove('show');
+});
+
+/* init */
+renderNav();renderPages();
+const start=(location.hash||'#home').slice(1);
+go(PAGES.find(p=>p.id===start)?start:'home',false);
+window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(PAGES.find(p=>p.id===id))go(id,false)});
+</script>
+</body>
+</html>
